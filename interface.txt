@@ -1,0 +1,25 @@
+Material: Typ
+
+SVG/DXF/... ... zu Kurvenobjekt Shape
+Shape: Beliebige 2D-Kurve, bspw. Außenkontur und seitliches Innenloch
+Funktionen: Shape.toOutline() erzeugt 
+
+Drawings=Array[Drawing]
+Drawing=Shape + ImportSettings
+
+Toolpath(Shape, Settings): zum Beispiel Außendrehen längs
+Settings.tool: Empfehlungen für Schnittgeschw. aus Wkz.Datenbank
+Toolpath.toCode() -> Array[MachineCommand]
+
+MachineCommand: LineMove/ToolChange/...
+
+Postprocessor.createCode(Array[MachineCommand], optional MachineSettings)
+-> foreach MachineCommand: wenn Typ LineMove, dann..., sonst...
+
+
+
+
+Tools: Array[Tool]
+Tool: Nummer, Schnittgeschw, ...
+
+Speichern per Serialisierung/Deserialisierung von Drawings, Material, Toolpaths, PostprocessorSettings
