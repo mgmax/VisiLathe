@@ -18,8 +18,11 @@ class ZParallelToolpath(Toolpath):
         zDirection= 1 if (zDirection>0) else -1
         zResolution=self.settings.get("zResolution", 1)
         
-        maxX=self.settings.get("maxX", self.globalSettings["maxX"])
-        minX=self.settings.get("minX", self.globalSettings["minX"])
+        maxX=self.globalSettings["materialDiameter"]
+        # TODO minX not unused, no GUI option
+        minX=0
+        #minX=self.settings.get("minX", self.globalSettings["minX"])
+        safeX=maxX + self.globalSettings["flightDistance"]
         cutDepth=self.settings["cutDepth"]
         finalPassDepth=self.settings["finalPassDepth"]
         approachDistance=self.settings.get("approachDistance", self.globalSettings["approachDistance"])
@@ -74,7 +77,7 @@ class ZParallelToolpath(Toolpath):
             if not materialRemoved:
                 return # skip empty block
             # rapid to safe position above startpoint
-            yield MachineCommand.LineMove([(self.globalSettings["safeX"], points[0][1])], MachineCommand.RapidSpeed)
+            yield MachineCommand.LineMove([(safeX, points[0][1])], MachineCommand.RapidSpeed)
             # rapid down to approach position above startpoint
             yield MachineCommand.LineMove([(points[0][0]+cutDepth+approachDistance, points[0][1])], MachineCommand.RapidSpeed) # TODO correct approach offset
             # slow movement: approach and cut
@@ -82,7 +85,7 @@ class ZParallelToolpath(Toolpath):
             c.simplify(tolerance=self.globalSettings["curveTolerance"])
             yield c
             # rapid out to safe position above endpoint
-            yield MachineCommand.LineMove([(self.globalSettings["safeX"], points[-1][1])], MachineCommand.RapidSpeed)
+            yield MachineCommand.LineMove([(safeX, points[-1][1])], MachineCommand.RapidSpeed)
         
         # roughingPasses
         for xLimit in  xLayers:
@@ -100,7 +103,7 @@ class ZParallelToolpath(Toolpath):
 if __name__ == '__main__':
     t=ZParallelToolpath(shape=CylinderShape(30, 50, 15), \
                    settings={"name":"Beispiel", "tool":3, "rpm":3000, "feed":"100", "zDirection":+1, "cutDepth":1, "finalPassDepth":0.2}, \
-                   globalSettings={"maxX":20, "minX":0, "safeX":25, "approachDistance": 1, "curveTolerance":0.001})
+                   globalSettings={"materialDiameter":20, "flightDistance":5, "approachDistance": 1, "curveTolerance":0.001})
     code=[]
     for c in t.getMachineCode():
         print c
