@@ -13,26 +13,31 @@ from numpy import *
 
 
 class ZParallelToolpath(Toolpath):
-    def getMachineCode(self): 
+    def getMachineCode(self, globalSettings): 
         zDirection = self.settings.get("zDirection", 0)
         zDirection= 1 if (zDirection>0) else -1
         zResolution=self.settings.get("zResolution", 1)
         
-        maxX=self.globalSettings["materialDiameter"]
+        maxX=globalSettings["materialDiameter"]/2
         # TODO minX not unused, no GUI option
         minX=0
-        #minX=self.settings.get("minX", self.globalSettings["minX"])
-        safeX=maxX + self.globalSettings["flightDistance"]
+        #minX=self.settings.get("minX", globalSettings["minX"])
+        safeX=maxX + globalSettings["flightDistance"]
         cutDepth=self.settings["cutDepth"]
         finalPassDepth=self.settings["finalPassDepth"]
-        approachDistance=self.settings.get("approachDistance", self.globalSettings["approachDistance"])
+        approachDistance=self.settings.get("approachDistance", globalSettings["approachDistance"])
         
-        yield MachineCommand.BlockStart(blockName=self.settings["name"], tool=self.settings["tool"], rpm=self.settings["rpm"], feed=self.settings["feed"])
+        # TODO FeedMode/SpeedMode
+        assert self.settings["speedMode"]==0
+        assert self.settings["feedMode"]==0
+        
+        yield MachineCommand.BlockStart(blockName=self.settings["name"], tool=self.settings["tool"], rpm=self.settings["speedValue"], feed=self.settings["feedValue"])
 
         # z limits
         [zShapeMin, zShapeMax]=self.shape.getZLimits()
         zMin=self.settings.get("zMin", zShapeMin)
         zMax=self.settings.get("zMax", zShapeMax)
+        assert(zMin<=zMax)
         
         # discretized z range
         zPoints=arange(zMin, zMax, zResolution)
@@ -58,8 +63,14 @@ class ZParallelToolpath(Toolpath):
         
         # roughing passes
         # slightly reduce cutDepth so that we have evenly spaced "layers" from maxX down to minX, including minX
-        [xLayers, realCutDepth] = linspace(max(maxX-cutDepth,minX),minX,num=math.ceil((maxX-minX)/cutDepth),retstep=True)
-        assert realCutDepth <= cutDepth
+        numCuts=math.ceil(abs((maxX-minX)/cutDepth))
+        if numCuts==0:
+            return
+        elif numCuts==1:
+            xLayers=[minX]
+        else:
+            [xLayers, realCutDepth]=linspace(max(maxX-cutDepth,minX),minX,num=numCuts,retstep=True) # TODO rewrite this line, I don't understand it anymore
+            assert realCutDepth <= cutDepth
         
         def cutOneLayer(self, xLimit,  offset):
             # for each depth:
@@ -81,8 +92,8 @@ class ZParallelToolpath(Toolpath):
             # rapid down to approach position above startpoint
             yield MachineCommand.LineMove([(points[0][0]+cutDepth+approachDistance, points[0][1])], MachineCommand.RapidSpeed) # TODO correct approach offset
             # slow movement: approach and cut
-            c=MachineCommand.LineMove(points, self.settings["feed"]) # TODO extra feed for x approach/plunge
-            c.simplify(tolerance=self.globalSettings["curveTolerance"])
+            c=MachineCommand.LineMove(points, self.settings["feedValue"]) # TODO extra feed for x approach/plunge
+            c.simplify(tolerance=globalSettings["curveTolerance"])
             yield c
             # rapid out to safe position above endpoint
             yield MachineCommand.LineMove([(safeX, points[-1][1])], MachineCommand.RapidSpeed)
@@ -102,10 +113,9 @@ class ZParallelToolpath(Toolpath):
 
 if __name__ == '__main__':
     t=ZParallelToolpath(shape=CylinderShape(30, 50, 15), \
-                   settings={"name":"Beispiel", "tool":3, "rpm":3000, "feed":"100", "zDirection":+1, "cutDepth":1, "finalPassDepth":0.2}, \
-                   globalSettings={"materialDiameter":20, "flightDistance":5, "approachDistance": 1, "curveTolerance":0.001})
+                   settings={"name":"Beispiel", "tool":3, "speedMode":0, "speedValue":3000, "feedValue":100,  "feedMode":0, "zDirection":+1, "cutDepth":1, "finalPassDepth":0.2})
     code=[]
-    for c in t.getMachineCode():
+    for c in t.getMachineCode(globalSettings={"materialDiameter":60, "flightDistance":5, "approachDistance": 1, "curveTolerance":0.001}):
         print c
         code.append(c)
     

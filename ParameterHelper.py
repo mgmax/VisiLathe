@@ -16,7 +16,9 @@ class ParameterHelper:
             if isinstance(obj, QtGui.QAbstractSpinBox):
                 val=obj.value()
             elif isinstance(obj, QtGui.QComboBox):
-                val=obj.getCurrentIndex()
+                val=obj.currentIndex()
+            elif isinstance(obj, QtGui.QLineEdit):
+                val=obj.text()
             else:
                 raise Exception("cannot get parameter value from unknown GUI object "+str(obj))
             values[p["name"]]=val
@@ -31,6 +33,8 @@ class ParameterHelper:
                 obj.setValue(val)
             elif isinstance(obj, QtGui.QComboBox):
                 obj.setCurrentIndex(val)
+            elif isinstance(obj, QtGui.QLineEdit):
+                obj.setText(val)
             else:
                 raise Exception("cannot set parameter value for unknown GUI object "+str(obj))
             values[p["name"]]=val

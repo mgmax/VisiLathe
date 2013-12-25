@@ -9,13 +9,13 @@ from Postprocessor import *
 
 # abstract
 class Toolpath:
-    def __init__(self, shape,  settings, globalSettings):
+    def __init__(self, shape,  settings):
         self.shape=shape
         self.settings=settings
-        self.globalSettings=globalSettings
-        assert globalSettings["safeX"]>globalSettings["maxX"]
+        # globalSettings passed at getMachineCode() call
+        # assert globalSettings["safeX"]>globalSettings["maxX"]
         
-    def getMachineCode(self):
+    def getMachineCode(self, globalSettings):
         # needs to be overriden in subclass
         raise Exception("Not yet implemented")
     
