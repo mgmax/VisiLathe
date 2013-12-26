@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import ShapeUtils.DouglasPeucker
+import numpy
+
 class MachineCommand:
     RapidSpeed="rapid" # pseudo-object
     
     class LineMove:
         def __init__(self, points, feed):
-            self.points=points
+            self.points=numpy.array(points)
             self.feed=feed
         
         def simplify(self, tolerance):
@@ -28,7 +31,8 @@ class MachineCommand:
             newPoints.append(self.points[-1])
             self.points=newPoints
             
-            # TODO second pass: remove points that can be removed without changing the shape more than the tolerance
+            # second pass: remove points that can be removed without changing the shape more than the tolerance
+            self.points=numpy.array(ShapeUtils.DouglasPeucker.simplify_points(self.points, tolerance))
         def __repr__(self):
             return "<LineMove: feed={0}, p={1}>".format(str(self.feed), str(self.points))
             

@@ -4,7 +4,7 @@
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-from MachineCommand import *
+from toolpath.MachineCommand import *
 
 class PreviewWidget(QWidget):
     """
@@ -35,6 +35,7 @@ class PreviewWidget(QWidget):
         self.update()
     
     def paintEvent(self, event):
+        print "p"
         if self.width()==0 or self.height()==0:
             return
             
@@ -97,7 +98,7 @@ class PreviewWidget(QWidget):
                 pass
             else:
                 raise Exception("Unknown MachineCommand object for drawing: " + str(c))
-        
+        print "pE"
 
         
         

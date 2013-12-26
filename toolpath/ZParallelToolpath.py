@@ -16,7 +16,8 @@ class ZParallelToolpath(Toolpath):
     def getMachineCode(self, globalSettings): 
         zDirection = self.settings.get("zDirection", 0)
         zDirection= 1 if (zDirection>0) else -1
-        zResolution=self.settings.get("zResolution", 1)
+        #zResolution=self.settings.get("zResolution", 0.1)
+        zResolution=globalSettings["curveTolerance"] # TODO extra setting
         
         maxX=globalSettings["materialDiameter"]/2
         # TODO minX not unused, no GUI option

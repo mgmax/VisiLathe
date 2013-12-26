@@ -16,6 +16,7 @@ Documentation see:
 PyQt Docs:
 Specific objects like QButton: http://pyqt.sourceforge.net/Docs/PyQt4/classes.html -> search for name of the class you're looking for
 General stuff: http://pyqt.sourceforge.net/Docs/PyQt4/
+examples are provided in the python-qt4-docs package
 
 python "cheatsheet" (still looking for a better one):
 http://rgruet.free.fr/PQR27/PQR2.7.html
@@ -27,15 +28,17 @@ http://rgruet.free.fr/PQR27/PQR2.7.html
 
 import sys
 import pickle # (de)serialisation
+import traceback
 
-# QT GUI stuff
+# QT GUI stuff<<<
 from PyQt4.QtGui import *
 #from PyQt4.QtCore import pyqtSignature
 
 from ui import *
-from ParameterHelper import *
-from ZParallelToolpath import *
+from ui.ParameterHelper import *
+from toolpath.ZParallelToolpath import *
 from ui.PreviewWidget import *
+from ui.ToolpathThread import *
 
 class VisiLatheGUI(QMainWindow, Ui_MainWindow):
     """
@@ -46,7 +49,7 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
     INDEX_DRAWINGS=1
     INDEX_TOOLPATHS=2
     INDEX_SIMULATION=3
-    FILE_STRUCTURE_VERSION="2013-12-25" # increment this as soon as the file format is incompatible with earlier versions
+    FILE_STRUCTURE_VERSION="2013-12-26" # increment this as soon as the file format is incompatible with earlier versions
         
     
     def __init__(self, parent = None):
@@ -57,6 +60,9 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
         
         self.setupUi(self)
         self.ignoreValueEvents=False
+        
+        self.workerThread=ToolpathThread()
+        self.workerThread.workFinished.connect(self.toolpathCalculationFinished)
         
         
         # Signal-Slot-connections
@@ -76,6 +82,11 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
         self.simTimer.setInterval(100)
         self.simTimer.timeout.connect(self.simulationTick)
         
+        self.updatePreviewLazyTimer=QTimer()
+        self.updatePreviewLazyTimer.setInterval(1000)
+        self.updatePreviewLazyTimer.setSingleShot(True)
+        self.updatePreviewLazyTimer.timeout.connect(self.updatePreviewImmediately)
+        
         # init
         # parameter name, object, default value, type
         # (type currently unused)
@@ -83,7 +94,7 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
                               {"name":"materialLength", "object":self.materialLengthSpinBox, "default": 0, "type": float},
                               {"name":"flightDistance", "object":self.flightDistanceSpinBox, "default": 20, "type": float}, 
                               {"name":"approachDistance", "object":self.safeApproachSpinBox, "default": 2, "type": float}, 
-                              {"name":"curveTolerance", "object":self.curveToleranceSpinBox, "default": 0.010, "type": float}, 
+                              {"name":"curveTolerance", "object":self.curveToleranceSpinBox, "default": 0.10, "type": float}, 
                               ]
         self.toolpathSettingsParameters=[{"name":"name", "object":self.toolpathNameLineEdit, "default":"Unnamed Toolpath", "type": str},
                                          {"name":"tool", "object":self.toolSpinBox, "default":0, "type": int},
@@ -135,14 +146,24 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
         self.workflowTabs.setCurrentIndex(self.workflowTabs.currentIndex()+1)
     
     def updatePreview(self):
+        self.updatePreviewLazyTimer.start()
+        
+    def updatePreviewImmediately(self): # called after 100ms of inactivity
+        print "uS"
         self.previewWidget.setMaterialSize(self.globalSettings["materialLength"], self.globalSettings["materialDiameter"])
-        c=[]
-        for t in self.toolpaths:
-            c.extend(t.getMachineCode(self.globalSettings))
+        self.workerThread.restartWithData({"toolpaths":self.toolpaths, "globalSettings":self.globalSettings})
+        print "uE"
+    
+    def toolpathCalculationFinished(self):
+        print "fS"
+        c=self.workerThread.getOutput()
+        if c==None:
+            c=[] # Preview-rendering was aborted/restarted
         self.previewWidget.showMachineCode(c)
         self.simSlider.setMaximum(len(c))
         self.simSlider.setValue(len(c))
         self.simSliderChanged()
+        print "fE"
     
     ####################################################################################
     # settings handling
@@ -155,7 +176,7 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
         self.globalSettings=ParameterHelper.getValuesFromGUI(self.globalSettingsParameters)
         if self.currentToolpath is not None:
             self.currentToolpath.settings=ParameterHelper.getValuesFromGUI(self.toolpathSettingsParameters)
-        self.loadToolpathsInGUI()        
+        #self.loadToolpathsInGUI()        
         self.updatePreview()
     
     
@@ -319,6 +340,7 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self, "Error saving file", e.__repr__() + "\n\n" + str(e))
             
     def openProject(self):
+        # TODO change to a more secure data format (JSON?) that does not allow loading arbitrary code
         try:
             # TODO ask for "save changes"
             self.loadEmptyFile()
@@ -333,7 +355,8 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
             self.toolpaths=[]
             for t in data["toolpaths"]:
                 # TODO load shape
-                self.toolpaths.append(ZParallelToolpath(shape=CylinderShape(30, 50, 15), settings=t.settings))
+                self.toolpaths.append(ZParallelToolpath(shape=DemoShape([]), settings=t.settings))
+                #self.toolpaths.append(ZParallelToolpath(shape=CylinderShape(30, 50, 15), settings=t.settings))
             assert data["fileStructureVersion"]==self.FILE_STRUCTURE_VERSION
             self.loadValuesInGUI()
             self.statusbar.showMessage("Successfully loaded project.", 5000)
@@ -341,7 +364,7 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
             
         except Exception, e:
             # TODO better messages
-            QMessageBox.critical(self, "Error loading file", e.__repr__() + "\n\n" + str(e))
+            QMessageBox.critical(self, "Error loading file", traceback.format_exc())
             
         
 
@@ -385,4 +408,6 @@ def main():
     
 
 if __name__ == '__main__':
-    main()
+    import cProfile
+    print cProfile.run('main()')
+    #main()
