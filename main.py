@@ -147,6 +147,7 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
     
     def updatePreview(self):
         self.updatePreviewLazyTimer.start()
+        self.previewWidget.setInvalid()
         
     def updatePreviewImmediately(self): # called after 100ms of inactivity
         print "uS"
@@ -393,7 +394,7 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
                 for c in t.getMachineCode(self.globalSettings):
                     code.append(c)
             for l in p.createCode(code, settings=None):
-                f.write(l)
+                f.write(l+"\n")
             f.close()
         except Exception, e:
             # TODO better messages

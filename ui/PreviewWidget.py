@@ -26,6 +26,11 @@ class PreviewWidget(QWidget):
     
     def showMachineCode(self, codeList):
         self.machineCodes=codeList
+        self.isValid=True
+        self.update()
+    
+    def setInvalid(self):
+        self.isValid=False
         self.update()
     
     def setPreviewStep(self, step):
@@ -35,11 +40,17 @@ class PreviewWidget(QWidget):
         self.update()
     
     def paintEvent(self, event):
-        print "p"
         if self.width()==0 or self.height()==0:
             return
-            
+        
+        print "p"
+        # TODO create a separate worker thread for painting - better response time
         painter=QPainter(self)
+        if not self.isValid:
+            painter.setPen(QColor("black"))
+            painter.drawText(QPointF(100, 100), "recalculating...")
+            return
+        
         black=QColor("black")
         thickPen=QPen(black)
         thickPen.setWidth(3)

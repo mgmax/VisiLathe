@@ -10,7 +10,8 @@
 #   http://www.mappinghacks.com/code/PolyLineReduction/
 #
 # no longer working link: http://mappinghacks.com/2008/05/05/douglas-peucker-line-simplification-in-python/
-
+#
+# another, recursive instead of iterative, version can be found at https://github.com/sebleier/RDP/
 """
 
 >>> line = [(0,0),(1,0),(2,0),(2,1),(2,2),(1,2),(0,2),(0,1),(0,0)]
