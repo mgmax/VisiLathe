@@ -27,6 +27,9 @@ http://rgruet.free.fr/PQR27/PQR2.7.html
 
 
 import sys
+import os
+import subprocess
+
 import pickle # (de)serialisation
 import traceback
 
@@ -49,7 +52,7 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
     INDEX_DRAWINGS=1
     INDEX_TOOLPATHS=2
     INDEX_SIMULATION=3
-    FILE_STRUCTURE_VERSION="2013-12-26" # increment this as soon as the file format is incompatible with earlier versions
+    FILE_STRUCTURE_VERSION="2013-12-27" # increment this as soon as the file format is incompatible with earlier versions
         
     
     def __init__(self, parent = None):
@@ -64,6 +67,7 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
         self.workerThread=ToolpathThread()
         self.workerThread.workFinished.connect(self.toolpathCalculationFinished)
         
+        self.postprocessorComboBox.addItems(Postprocessor.listPostprocessors())
         
         # Signal-Slot-connections
         self.workflowTabs.currentChanged.connect(self.workflowTabChanged)
@@ -95,6 +99,7 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
                               {"name":"flightDistance", "object":self.flightDistanceSpinBox, "default": 20, "type": float}, 
                               {"name":"approachDistance", "object":self.safeApproachSpinBox, "default": 2, "type": float}, 
                               {"name":"curveTolerance", "object":self.curveToleranceSpinBox, "default": 0.10, "type": float}, 
+                              {"name":"postprocessorId", "object":self.postprocessorComboBox, "default": 0, "type": "enum"}, 
                               ]
         self.toolpathSettingsParameters=[{"name":"name", "object":self.toolpathNameLineEdit, "default":"Unnamed Toolpath", "type": str},
                                          {"name":"tool", "object":self.toolSpinBox, "default":0, "type": int},
@@ -313,6 +318,7 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
         self.currentToolpath=None
         self.toolpaths=[]
         self.loadValuesInGUI()
+        self.loadToolpathsInGUI()
         self.workflowTabs.setCurrentIndex(0)
         
     def newProject(self):
@@ -350,6 +356,7 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
                                 "VisiLathe Project (*.visilathe)")
             f=file(filename, "r")
             data=pickle.load(f)
+            assert data["fileStructureVersion"]==self.FILE_STRUCTURE_VERSION
             self.globalSettings=data["globalSettings"]
             # TODO better solution for different toolpath-types
             # we can't just import the whole object because it also contains the functions that may have changed
@@ -358,7 +365,6 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
                 # TODO load shape
                 self.toolpaths.append(ZParallelToolpath(shape=DemoShape([]), settings=t.settings))
                 #self.toolpaths.append(ZParallelToolpath(shape=CylinderShape(30, 50, 15), settings=t.settings))
-            assert data["fileStructureVersion"]==self.FILE_STRUCTURE_VERSION
             self.loadValuesInGUI()
             self.statusbar.showMessage("Successfully loaded project.", 5000)
 
@@ -373,27 +379,28 @@ class VisiLatheGUI(QMainWindow, Ui_MainWindow):
     ####################################################################################
     # NC File
     ####################################################################################
-    
-    # TODO: Postprocessor selection
     # TODO Postproc settings, CRLF etc
     # TODO disable savebutton before a file is selected
     def selectNCFile(self):
         f = QFileDialog.getSaveFileName(self, "Save File",
                             self.NCFilename,
-                            " ")
+                            "NCCAD8 (*.knc)")
+        if len(f)==0:
+            return # Cancel was pressed
         self.NCFilenameLabel.setText(f)
         self.NCFilename=f
+        self.saveNCButton.setEnabled(True)
     
     def saveNCFile(self):
         # TODO ask for overwriting here, but not at selectNCFile?
         try:
             f=file(self.NCFilename, "w")
-            p=Postprocessor()
+            p=Postprocessor.getFromName("nccad8")(self.globalSettings)
             code=[]
             for t in self.toolpaths:
                 for c in t.getMachineCode(self.globalSettings):
                     code.append(c)
-            for l in p.createCode(code, settings=None):
+            for l in p.createCode(code):
                 f.write(l+"\n")
             f.close()
         except Exception, e:
@@ -409,6 +416,10 @@ def main():
     
 
 if __name__ == '__main__':
+    
+    currentDir=os.path.dirname(__file__)+"/"
+    os.chdir(currentDir)
+    subprocess.call("./ui/compileAll.py")
     import cProfile
     print cProfile.run('main()')
     #main()

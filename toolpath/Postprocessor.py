@@ -6,16 +6,35 @@ Postprocessor: converts machine commands to the machine's GCode dialect
 """
 
 from MachineCommand import *
+import importlib
 
 class Postprocessor:
-    def createCode(self, commands, settings):
+    @staticmethod
+    def listPostprocessors():
+        return ["generic", "nccad8"] # TODO get from directory listing ../machine/
+    
+    @staticmethod
+    def getFromName(name):
+        m = importlib.import_module("machine."+name, "..") # load python file from ../machine/
+        c = getattr(m, name+"Postprocessor") # get class
+        return c
+    
+    def __init__(self, globalSettings):
+        self.globalSettings=globalSettings
+    
+    def createCode(self, commands):
         lastTool=None
         yield self.header()
         
         for c in commands:
             if isinstance(c, MachineCommand.LineMove):
                 for p in c.points:
-                    yield self.lineMove(p, c.feed)
+                    x=p[0]
+                    z=p[1]
+                    [x, z]=self.transformCoordinates(x, z)
+                    if self.useDiameterMode():
+                        x=x*2
+                    yield self.lineMove([x, z], c.feed)
                     
             elif isinstance(c, MachineCommand.BlockStart):
                 yield ""
@@ -35,7 +54,8 @@ class Postprocessor:
     
     def header(self):
         return "TODO INIT\n"\
-        "asdf n"
+        "asdf n"\
+        "G90"
         
     
     def footer(self):
@@ -50,10 +70,18 @@ class Postprocessor:
     
     def lineMove(self,p, feed):
         if feed==MachineCommand.RapidSpeed:
-            return "G0 X{0} Z{1}".format(p[0], p[1])
+            return "G0 "+self.formatCoordinate(p)
         else:
-            return "G1 X{0} Z{1} F{2}".format(p[0], p[1], feed)
-        
+            return "G1 {0} F{1}".format(self.formatCoordinate(p), feed)
+    def formatCoordinate(self, p):
+        return "X{:.2} Z{:.2}".format(p)
+        return 
+    
+    def useDiameterMode(self):
+        return True
+    
+    def transformCoordinates(self, x, z):
+        return [x, z-self.globalSettings["materialLength"]]
 
 if __name__ == '__main__':
     print "Testing postproc"

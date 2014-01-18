@@ -9,14 +9,17 @@ class Shape:
     def getZLimits(self):
         raise Exception("Not yet implemented")
 
-class DemoShape(Shape):
-    
-    def __init__(self, points):
+class DemoShape(PolygonShape):
+    def __init__(self):
         points=[]
         for i in numpy.arange(30, 60, 0.1):
             points.append((20*math.sin(i)+30, i))
-        self.points=points
-            
+        super(DemoShape, self).__init__(points)
+        
+class PolygonShape(Shape):
+    def __init__(self, points):
+        self.points=numpy.array(points)
+    
     def maxX(self, zRequested):
         # get highest X value at requested z
         if len(self.points)<2:

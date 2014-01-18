@@ -36,7 +36,7 @@
          <enum>QTabWidget::West</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>4</number>
         </property>
         <widget class="QWidget" name="tabWidgetPage1">
          <attribute name="title">
@@ -91,7 +91,7 @@
           <item row="4" column="2">
            <widget class="QDoubleSpinBox" name="safeApproachSpinBox">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -139,7 +139,7 @@
           <item row="6" column="2">
            <widget class="QDoubleSpinBox" name="flightDistanceSpinBox">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -232,7 +232,7 @@
              <bool>true</bool>
             </property>
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -562,6 +562,44 @@
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_7">
           <item>
+           <widget class="QLabel" name="label_27">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Postprocessor</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="postprocessorComboBox"/>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>10</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
            <widget class="QLabel" name="label_24">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -582,13 +620,6 @@
           </item>
           <item>
            <layout class="QGridLayout" name="gridLayout_7">
-            <item row="1" column="1">
-             <widget class="QPushButton" name="saveNCButton">
-              <property name="text">
-               <string>Save</string>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="1">
              <widget class="QPushButton" name="selectNCFileButton">
               <property name="text">
@@ -596,16 +627,35 @@
               </property>
              </widget>
             </item>
+            <item row="1" column="1">
+             <widget class="QPushButton" name="saveNCButton">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Save</string>
+              </property>
+             </widget>
+            </item>
             <item row="0" column="0" rowspan="2">
              <widget class="QLabel" name="NCFilenameLabel">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="maximumSize">
+               <size>
+                <width>150</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="text">
                <string>No file selected</string>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -1127,7 +1177,7 @@
          <item row="3" column="2">
           <widget class="QLabel" name="label_26">
            <property name="text">
-            <string>mm</string>
+            <string>mm (radius)</string>
            </property>
           </widget>
          </item>
@@ -1148,7 +1198,7 @@
          <item row="4" column="2">
           <widget class="QLabel" name="label_28">
            <property name="text">
-            <string>mm</string>
+            <string>mm (radius)</string>
            </property>
           </widget>
          </item>
@@ -1296,6 +1346,54 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>materialDiameterSpinBox</tabstop>
+  <tabstop>materialLengthSpinBox</tabstop>
+  <tabstop>safeApproachSpinBox</tabstop>
+  <tabstop>flightDistanceSpinBox</tabstop>
+  <tabstop>curveToleranceSpinBox</tabstop>
+  <tabstop>treeWidget</tabstop>
+  <tabstop>pushButton_3</tabstop>
+  <tabstop>pushButton_4</tabstop>
+  <tabstop>pushButton_2</tabstop>
+  <tabstop>postprocessorComboBox</tabstop>
+  <tabstop>buttonBox_3</tabstop>
+  <tabstop>buttonBox_4</tabstop>
+  <tabstop>toolpathList</tabstop>
+  <tabstop>toolpathRemoveButton</tabstop>
+  <tabstop>toolpathAddButton</tabstop>
+  <tabstop>toolpathB</tabstop>
+  <tabstop>simSlider</tabstop>
+  <tabstop>runSimButton</tabstop>
+  <tabstop>pushButton_5</tabstop>
+  <tabstop>simSpeedSlider</tabstop>
+  <tabstop>simButtonGroup</tabstop>
+  <tabstop>saveNCButton</tabstop>
+  <tabstop>selectNCFileButton</tabstop>
+  <tabstop>pushButton</tabstop>
+  <tabstop>comboBox</tabstop>
+  <tabstop>checkBox</tabstop>
+  <tabstop>checkBox_2</tabstop>
+  <tabstop>checkBox_3</tabstop>
+  <tabstop>checkBox_4</tabstop>
+  <tabstop>buttonBox</tabstop>
+  <tabstop>doubleSpinBox_5</tabstop>
+  <tabstop>doubleSpinBox_6</tabstop>
+  <tabstop>doubleSpinBox_7</tabstop>
+  <tabstop>doubleSpinBox_8</tabstop>
+  <tabstop>toolpathNameLineEdit</tabstop>
+  <tabstop>comboBox_2</tabstop>
+  <tabstop>comboBox_3</tabstop>
+  <tabstop>toolSpinBox</tabstop>
+  <tabstop>feedSpinBox</tabstop>
+  <tabstop>feedModeComboBox</tabstop>
+  <tabstop>speedSpinBox</tabstop>
+  <tabstop>speedModeComboBox</tabstop>
+  <tabstop>cutDepthSpinBox</tabstop>
+  <tabstop>finalPassSpinBox</tabstop>
+  <tabstop>toolpathSettingsButtonGroup</tabstop>
+  <tabstop>workflowTabs</tabstop>
+ </tabstops>
  <resources>
   <include location="demoImages.qrc"/>
  </resources>
@@ -1435,8 +1533,8 @@
    <slot>saveProjectAs()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>631</x>
-     <y>230</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>683</x>

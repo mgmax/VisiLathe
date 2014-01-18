@@ -2,7 +2,7 @@ Material: Typ
 
 SVG/DXF/... ... zu Kurvenobjekt Shape
 Shape: Beliebige 2D-Kurve, bspw. Außenkontur und seitliches Innenloch
-Funktionen: Shape.toOutline() erzeugt 
+Funktionen: Shape.maxX(z) für Außendrehkontur
 
 Drawings=Array[Drawing]
 Drawing=Shape + ImportSettings
