@@ -8,7 +8,7 @@ Längsdrehen:
 from MachineCommand import *
 from Postprocessor import *
 from Toolpath import *
-from Shape import *
+from drawing import *
 from numpy import *
 
 
